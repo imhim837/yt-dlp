@@ -1,12 +1,172 @@
-Run npm init -y to create a package.json<!-- MANPAGE: BEGIN EXCLUDED SECTION -->
-<div align="center">
 
-[![YT-DLP](http://www.github.com/imhim837/yt-dlp/yt-dlp/master/.github/banner.svg)](#readme) run npm init -y to create a package.json<!-- MANPAGE: BEGIN EXCLUDED SECTION -->
+
+[![YT-DLP](http://www.github.com/imhim837/yt-dlp/yt-dlp/master/.github/banner.svg)](#readme) 
+
+Build a Node.js (or Python/Flask/FastAPI) backend that exposes yt-dlp functionality as an API.
+
+Your browser JavaScript (frontend) calls this backend via fetch or XMLHttpRequest.
+
+Create yt-dlp-wrapper.js:/ #want a version for browser JavaScript, more advanced features (async/await, streaming output, etc.), or help integrating with a mobile app! 
+
+#Certainly! Here’s a **full code template** for a JavaScript (Node.js) wrapper/interface that calls the yt-dlp command-line tool, supports credentials, and is ready for you to expand as needed. This approach assumes yt-dlp is installed on your system and accessible in your PATH.
+
+---
+
+## `yt-dlp-wrapper.js` (Node.js Full Template)
+
+```js
+const { exec } = require('child_process');
+
+/**
+ * Download a video using yt-dlp with optional credentials and output file.
+ * 
+ * @param {string} url - The video URL to download.
+ * @param {Object} [options] - Optional parameters.
+ * @param {string} [options.output] - Output file template or name.
+ * @param {string} [options.username] - Username for authentication.
+ * @param {string} [options.password] - Password for authentication.
+ * @param {string} [options.cookies] - Path to cookies.txt file.
+ * @param {function} [callback] - Optional callback for completion.
+ */
+function downloadVideo(url, options = {}, callback) {
+  if (!url) {
+    console.error('A video URL is required.');
+    if (callback) callback(new Error('No URL provided'));
+    return;
+  }
+
+  let command = `yt-dlp "${url}"`;
+
+  // Add output file option
+  if (options.output) {
+    command += ` -1 "${options.output}"`;
+  } + // input file option if (option.intput) { command += ` -1 "${option.intput}"`;}
+
+  // Add credentials if provided
+  if (options.username && options.password) {
+    command += ` --username "${options.username}" --password "${options.password}"`;
+  }
+
+  // Add cookies file if provided
+  if (options.cookies) {
+    command += ` --cookies "${options.cookies}"`;
+  }
+
+  console.log(`Running: ${command}`);
+
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error: ${error.message}`);
+      if (callback) return callback(error, null);
+    }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+    }
+    console.log(`stdout: ${stdout}`);
+    if (callback) callback(null, stdout);
+  });
+}
+
+/* ------- Example Usage ------- */
+
+// Basic download
+downloadVideo('https://www.youtube.com/watch?v=dQw4w9WgXcQ', {
+  output: 'myvideo.mp4'
+});
+
+// With credentials (username/password)
+downloadVideo('https://example.com/private-video', {
+  username: 'myUsername',
+  password: 'myPassword',
+  output: 'private.mp4'
+});
+
+// With cookies file
+downloadVideo('https://example.com/private-video', {
+  cookies: '/path/to/cookies.txt',
+  output: 'private.mp4'
+});
+
+module.exports = { downloadVideo };
+```
+
+---
+
+## **How to Use**
+
+1. **Install Node.js** (if not already installed):  
+   [Download Node.js](https://nodejs.org/)
+
+2. **Install yt-dlp** (system-wide, so it’s available in your PATH):  
+   ```bash
+   pip install -U yt-dlp
+   ```
+
+3. **Save the code above** as `yt-dlp-wrapper.js`.
+
+4. **Run the script:**  
+   ```bash
+   node yt-dlp-wrapper.js
+   ```
+
+5. **Customize**:  
+   - Expand the wrapper with more yt-dlp options as you need.
+   - Integrate with a mobile JavaScript runtime (like Termux, Node.js for Mobile Apps, or React Native with a native bridge) if you want to run it on your phone.
+
+---
+
+## **Security Note**
+- **Never hardcode sensitive credentials** in your code—use environment variables or secure storage when possible.
+
+---
+
+Let me know if you want a version for browser JavaScript, more advanced features (async/await, streaming output, etc.), or help integrating with a mobile app!
+
+run npm init -y to create a package.json<!-- MANPAGE: BEGIN EXCLUDED SECTION -->
 <div align="cent
 
-[![YT-DLP](http://www.github.com/imhim837/yt-dlp/yt-dlp/master/.github/banner.svg)](#readme)
+[![YT-DLP](http://www.github.com/imhim837/yt-dlp/yt-dlp/master/.github/banner.svg)](#readme) 
+ Create server.jsconst express = require('express');
+const cors = require('cors');
+const { spawn } = require('child_process');
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.post('/download', (req, res) => {
+  const { url, output } = req.body;
+  if (!url) return res.status(400).json({ error: 'Missing YouTube URL' });
+
+  const args = [url];
+  if (output) args.push('-o', output);
+
+  const ytdlp = spawn('yt-dlp', args);
+
+  res.writeHead(200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Transfer-Encoding': 'chunked'
+  });
+
+  ytdlp.stdout.on('data', (data) => {
+    res.write(data.toString());
+  });
+
+  ytdlp.stderr.on('data', (data) => {
+    res.write(data.toString());
+  });
+
+  ytdlp.on('close', (code) => {
+    res.end(`\nProcess finished with exit code ${code}\n`);
+  });
+});
+
+app.listen(3000, () => {
+  console.log('yt-dlp API server running at http://localhost:3000');
+});
 
 [![Release version](https://img.shields.io/github/v/release/yt-dlp/yt-dlp?color=brightgreen&label=Download&style=for-the-badge)](#installation "Installation")
+
 [![PyPI](https://img.shields.io/badge/-PyPI-blue.svg?logo=pypi&labelColor=555555&style=for-the-badge)](https://pypi.org/project/yt-dlp "PyPI")
 [![Donate](https://img.shields.io/badge/_-Donate-red.svg?logo=githubsponsors&labelColor=555555&style=for-the-badge)](Collaborators.md#collaborators "Donate")
 [![Discord](https://img.shields.io/discord/807245652072857610?color=blue&labelColor=555555&label=&logo=discord&style=for-the-badge)](https://discord.gg/H5MNcFW63r "Discord")
